@@ -4,8 +4,7 @@ using System.Data.OleDb;
 using System.Data.SqlClient;
 using System.Configuration;
 using System;
-using System.Text;
-using System.Data.SqlClient;
+
 
 namespace PackageImport
 {
@@ -53,28 +52,52 @@ namespace PackageImport
                 {
                     con.Open();
                     command.Parameters.Add("@NR_ART", SqlDbType.NVarChar);
-                    command.Parameters.Add("@JM1", SqlDbType.Int);
+                    command.Parameters.Add("@opak1", SqlDbType.Int);
+                    command.Parameters.Add("@opak2", SqlDbType.Int);
+                    command.Parameters.Add("@opak3", SqlDbType.Int);
+
+                    command.Parameters.Add("@opisOpak1", SqlDbType.NVarChar);
+                    command.Parameters.Add("@opisOpak2", SqlDbType.NVarChar);
+                    command.Parameters.Add("@opisOpak3", SqlDbType.NVarChar);
+
                     foreach (DataRow row in dtExcelData.Rows)
                     {
-                        // string test = Convert.ToString(row["Materiał"]);
-                        int jm1;
-                        try { jm1=Convert.ToInt32(row["Ilo#opak#1"]);
+                        string nr_art = Convert.ToString(row["Materiał"]); //nr_art
+                        string opisOpak1 = Convert.ToString(row["Opis opak1"]);
+                        string opisOpak2 = Convert.ToString(row["Opis opak2"]);
+                        string opisOpak3 = Convert.ToString(row["Opis opakowanie 3"]);
+
+                        int opak1 = Convert.ToInt32(row["Ilo#opak#1"]);
+                        int opak2 = Convert.ToInt32(row["Ilo#opak#2"]);
+                        int opak3 = Convert.ToInt32(row["Ilo#opak#3"]);
+
+
+
+                        command.CommandText = "UPDATE DBO.NHANDLOTABLE SET opak1=@opak1, opak2=@opak2, opak3=@opak3, opisOpak1=@opisOpak1,opisOpak2=@opisOpak2,opisOpak3=@opisOpak3 WHERE NR_ART=@NR_ART";
+
+                        command.Parameters["@NR_ART"].Value = nr_art;
+
+                        command.Parameters["@opak1"].Value = opak1; //wiązka
+                        command.Parameters["@opak2"].Value = opak2; //skrzynka
+                        command.Parameters["@opak3"].Value = opak3; //paleta
+
+                        command.Parameters["@opisOpak1"].Value = opisOpak1; 
+                        command.Parameters["@opisOpak2"].Value = opisOpak2; 
+                        command.Parameters["@opisOpak3"].Value = opisOpak3; 
+
+                        try
+                        {
+                            command.ExecuteNonQuery();
+                            Console.WriteLine(nr_art + " complete");
                         }
-                        catch (Exception) { jm1 = 0; }
-
-                        command.CommandText = "UPDATE DBO.NHANDLOTABLE SET opak1=@JM1 WHERE NR_ART=@NR_ART";
-
-                        // command.Parameters.AddWithValue("@NR_ART", Convert.ToString(row["Materiał"]));
-                        
-                        command.Parameters["@NR_ART"].Value = Convert.ToString(row["Materiał"]);
-
-
-                        command.Parameters["@JM1"].Value = jm1;
-
-                        command.ExecuteNonQuery();
-                        Console.WriteLine(Convert.ToString(row["Materiał"]) + " complete");
+                        catch(Exception)
+                        {
+                            Console.WriteLine(nr_art + " failed");
+                        }
                     }
                     con.Close();
+                    Console.WriteLine("Press any key to end");
+                    Console.ReadKey();
                 }
 
 
@@ -84,7 +107,7 @@ namespace PackageImport
         
         static void Main(string[] args)
         {
-            LoadExcelMain(@"C:\Users\tomasz.hoffmann\Desktop\pt.xlsx");
+            LoadExcelMain(ConfigurationManager.ConnectionStrings["ExcelPath"].ConnectionString);
         }
     }
 }
